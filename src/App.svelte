@@ -1,13 +1,10 @@
 <script>
   import { onDestroy, onMount } from 'svelte';
-  import {socket} from './lib/client';
-  import { frameData } from './lib/stores.js';
+  import { socket } from './lib/client';
 
-  let htmlContent;
   onMount(async () => {
     socket.connect();
-	socket.emit('get-page', "https://en.wikipedia.org/wiki/India");
-    frame.addEventListener('load', onLoad)
+	socket.emit('get-page', "");
   });
 
   onDestroy(() => {
@@ -27,14 +24,9 @@
 <main>
     <h1 class = "text-xl text-center" >WikiRunnr</h1>
 	<div class = "mx-auto max-w-2/3">
-		<link rel="stylesheet" href="https://en.wikipedia.org/w/load.php?modules=skins.vector.styles&only=styles&skin=vector">
-	{@html $frameData}
+		<iframe class = "w-full h-screen" src="http://localhost:3000/wiki/India" frameborder="0">
+			<link rel="stylesheet" href="https://en.wikipedia.org/w/load.php?modules=skins.vector.styles&only=styles&skin=vector">
+		</iframe>
 	</div>
 </main>
 
-<style>
-    #gameWindow {
-        width:100%;
-        height:640px;
-    }
-</style>
