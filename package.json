@@ -1,27 +1,28 @@
 {
-  "name": "wikirunnr",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start-server": "nodemon ./server/main.js"
-  },
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "nodemon": "^3.1.9",
-    "svelte": "^5.20.2",
-    "vite": "^6.2.0"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.1.7",
-    "axios": "^1.9.0",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1",
-    "tailwindcss": "^4.1.7"
-  }
+    "name": "wikirunnr",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "start-server": "nodemon ./server/main.js"
+    },
+    "devDependencies": {
+        "@sveltejs/vite-plugin-svelte": "^5.0.3",
+        "nodemon": "^3.1.9",
+        "prettier-plugin-svelte": "^3.4.0",
+        "svelte": "^5.20.2",
+        "vite": "^6.2.0"
+    },
+    "dependencies": {
+        "@tailwindcss/vite": "^4.1.7",
+        "axios": "^1.9.0",
+        "cors": "^2.8.5",
+        "express": "^5.1.0",
+        "socket.io": "^4.8.1",
+        "socket.io-client": "^4.8.1",
+        "tailwindcss": "^4.1.7"
+    }
 }
