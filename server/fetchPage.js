@@ -4,7 +4,7 @@ const MEDIAWIKI = 'https://en.wikipedia.org/w/api.php'
 
 export const fetchWiki = async (link) => {
   try {
-    const search_term = link.split('\/').at(-1)
+    const search_term = decodeURIComponent(link)
     const page_result = await axios.get(MEDIAWIKI, {
       params: {
         action: 'parse',
@@ -30,8 +30,11 @@ export const getRandomArticleTitles = async (n) => {
       format: 'json',
     },
   })
-  const titles = response.data.query.random.map((e) =>
-    e.title.replace(/ /g, '_'),
-  )
-  return titles
+  const pages = response.data.query.random.map((e) => {
+    delete e.ns
+    e.page_src = e.title.replace(/ /g, '_')
+    e.enc_title = encodeURIComponent(e.page_src)
+    return e
+  })
+  return pages
 }

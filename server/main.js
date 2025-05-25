@@ -9,21 +9,23 @@ const PORT = 3000
 const app = express()
 
 app.get('/wiki{/*path}', async (req, res) => {
-  const url = req.originalUrl
-  const page_result = await fetchWiki(url)
-  let html_response = page_result.text['*']
-  const injectedScript = `<script src = 'https://cdn.tailwindcss.com'></script>`
-  const head = `
+  try {
+    const url = req.params.path[0]
+    const page_result = await fetchWiki(url)
+    let html_response = page_result.text['*']
+    const injectedScript = `<script src = 'https://cdn.tailwindcss.com'></script>`
+    const head = `
   <head>
     <style>
-      a { color: blue !important; }
+      a { color: blue !important; text-decoration: none; }
 	  a:hover { text-decoration: underline !important }
 	  a:visited { color : purple; }
     </style>
 	<link rel="stylesheet" href="https://en.wikipedia.org/w/load.php?lang=en&modules=site.styles&only=styles">
   </head>
 `
-  html_response = `
+    html_response = `
+	<!DOCTYPE html>
 	<html>
 		${head}
 		<body>
@@ -32,8 +34,11 @@ app.get('/wiki{/*path}', async (req, res) => {
 		</body>
 	</html>
 `
-  res.setHeader('Content-Type', 'text/html')
-  res.send(html_response)
+    res.setHeader('Content-Type', 'text/html')
+    res.send(html_response)
+  } catch (e) {
+    res.send(404)
+  }
 })
 
 app.use(cors({ origin: '*' }))

@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client'
-import { page_url, target } from '../stores/socket.js'
+import { start, target } from '../stores/socket.js'
 
 const URL = 'http://localhost:3000'
 
@@ -10,8 +10,8 @@ socket.on('connect', () => {
 })
 
 socket.on('game-info', (info) => {
-  page_url.set(info.start)
-  target.set(info.target.replace(/_/g, ' '))
+  start.set(info.start)
+  target.set(info.target)
 })
 
 socket.on('disconnect', () => {
