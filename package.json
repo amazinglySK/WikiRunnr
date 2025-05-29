@@ -11,6 +11,7 @@
     },
     "devDependencies": {
         "@sveltejs/vite-plugin-svelte": "^5.0.3",
+        "daisyui": "^5.0.42",
         "nodemon": "^3.1.9",
         "prettier-plugin-svelte": "^3.4.0",
         "svelte": "^5.20.2",
