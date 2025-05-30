@@ -13,7 +13,6 @@ app.get('/wiki{/*path}', async (req, res) => {
     const url = req.params.path[0]
     const page_result = await fetchWiki(url)
     let html_response = page_result.text['*']
-    const injectedScript = `<script src = 'https://cdn.tailwindcss.com'></script>`
     const head = `
   <head>
     <style>

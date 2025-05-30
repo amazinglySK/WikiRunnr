@@ -1,16 +1,19 @@
-<script>
+<script lang="ts">
   import { onDestroy, onMount } from 'svelte'
-  import { socket } from './lib/client'
-  import { start, target } from './stores/socket.js'
-  import Clock from './lib/components/Clock.svelte'
+  import { socket, startSoloGame } from '$lib/client.js'
+  import { start, target } from '$lib/stores/socket.svelte'
+  import Clock from '$lib/components/Clock.svelte'
+  import { browser } from '$app/environment'
+  import { PUBLIC_MODE } from '$env/static/public'
 
   let started = $state(false)
   let currentLocation = $state('')
-  let clockRef
+  let clockRef: Clock
 
   onMount(async () => {
-    socket.connect()
-    socket.emit('get-page', '')
+    if (PUBLIC_MODE == 'SOLO') {
+      socket.connect()
+    }
   })
 
   onDestroy(() => {
@@ -24,12 +27,13 @@
   })
 
   const startGame = async () => {
-    socket.emit('start')
+    await startSoloGame()
+    console.log(browser)
     started = true
     clockRef.start()
   }
 
-  const handleFrameLoad = async (e) => {
+  const handleFrameLoad = async (e: Event) => {
     try {
       const doc = e.target.contentWindow.document || e.target.contentDocument
       currentLocation = doc.location.pathname
@@ -49,8 +53,8 @@
 </script>
 
 <main>
-  <h1 class="text-4xl font-bold text-center">WikiRunnr</h1>
-  <div class="mx-auto max-w-3/4 py-2 flex justify-between items-center">
+  <h1 class="text-center text-4xl font-bold">WikiRunnr</h1>
+  <div class="mx-auto flex max-w-3/4 items-center justify-between py-2">
     <button
       class={`btn btn-secondary btn-md ${started && 'btn-disabled'}`}
       onclick={startGame}
@@ -58,7 +62,7 @@
       Start</button
     >
     {#if started}
-      <div class="flex gap-2 items-center text-md">
+      <div class="text-md flex items-center gap-2">
         <span class="material-symbols-outlined"> flag </span>
         <span
           ><a
@@ -72,7 +76,7 @@
     {/if}
     <Clock bind:this={clockRef}></Clock>
   </div>
-  <div class="mockup-browser border-base-300 border max-w-3/4 mx-auto">
+  <div class="mockup-browser border-base-300 mx-auto max-w-3/4 border">
     <div class="mockup-browser-toolbar">
       <div class="input">
         {currentLocation}
@@ -82,7 +86,7 @@
       onload={handleFrameLoad}
       src={$start.enc_title ? `/wiki/${$start.enc_title}` : '/wiki/Wikipedia'}
       title="game window"
-      class="w-full h-screen bg-white"
+      class="h-screen w-full bg-white"
       frameborder="0"
     >
     </iframe>

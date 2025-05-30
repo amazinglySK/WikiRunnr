@@ -1,5 +1,13 @@
 import { io } from 'socket.io-client'
-import { start, target } from '../stores/socket.js'
+import { start, target } from '$lib/stores/socket.svelte'
+import { getRandomArticleTitles } from '$lib/fetchPage'
+
+export const startSoloGame = async () => {
+  const titles = await getRandomArticleTitles(2)
+  start.set(titles[0])
+  target.set(titles[1])
+  console.log('Solo game started with titles:', titles)
+}
 
 const URL = 'http://localhost:3000'
 
@@ -17,3 +25,4 @@ socket.on('game-info', (info) => {
 socket.on('disconnect', () => {
   console.log('Disconnected from the server')
 })
+
