@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onDestroy } from 'svelte'
 
   let seconds = $state(0)
@@ -33,12 +33,16 @@
     seconds = 0
   }
 
+  export const getTime = () => {
+    return formatTime(seconds)
+  }
+
   onDestroy(() => {
     reset()
   })
 </script>
 
-<div class="clock flex gap-2 items-center">
+<div class="clock flex items-center gap-2">
   <span class="material-symbols-outlined"> schedule </span>
   <span class="text-lg">{formatTime(seconds)}</span>
 </div>
