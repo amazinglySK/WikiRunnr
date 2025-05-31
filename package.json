@@ -20,6 +20,7 @@
     "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/bcrypt": "^5.0.2",
     "daisyui": "^5.0.42",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -37,6 +38,7 @@
   },
   "dependencies": {
     "axios": "^1.9.0",
+    "bcrypt": "^6.0.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1"
   }
