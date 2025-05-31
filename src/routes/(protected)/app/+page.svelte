@@ -55,7 +55,6 @@
       const decoded_url = decodeURIComponent(doc.location.href)
         .split('/')
         .at(-1)
-      console.log(decoded_url, $target.page_src)
       // Win condition
       if ($target.page_src && decoded_url === $target.page_src) {
         started = false
