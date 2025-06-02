@@ -5,6 +5,7 @@
   import Clock from '$lib/components/Clock.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { PUBLIC_MODE } from '$env/static/public'
+  import { page } from '$app/stores'
 
   let started = $state(false)
   let currentLocation = $state('')
@@ -14,6 +15,13 @@
   let iframeRef: HTMLIFrameElement
 
   onMount(async () => {
+    const params = $page.url.searchParams
+    let start_id = parseInt(params.get('start'))
+    let end_id = parseInt(params.get('end'))
+    if (start_id && end_id) {
+      console.log(start_id, end_id, typeof start_id)
+      await startGame(start_id, end_id)
+    }
     if (PUBLIC_MODE == 'SOLO') {
       socket.connect()
     }
@@ -29,8 +37,8 @@
     socket.off('disconnect')
   })
 
-  const startGame = async () => {
-    await startSoloGame()
+  const startGame = async (start_id?: number, end_id?: number) => {
+    await startSoloGame(start_id, end_id)
     started = true
     clockRef.start()
   }
