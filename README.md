@@ -14,7 +14,7 @@ in the shortest time. Speedrun and explore Wikipedia.
 
 ## Future Considerations
 
-- [ ] Basic solo speedrun game
+- [x] Basic solo speedrun game
 - [ ] Enable PvP multiplayer using web sockets. 
 - [ ] Social element (Account creation, etc.)
 - [ ] Create difficulty gradients by analyzing "connectedness" of each article"

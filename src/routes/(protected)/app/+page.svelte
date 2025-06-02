@@ -40,6 +40,7 @@
   const startGame = async (start_id?: number, end_id?: number) => {
     await startSoloGame(start_id, end_id)
     started = true
+    clockRef.reset()
     clockRef.start()
   }
 

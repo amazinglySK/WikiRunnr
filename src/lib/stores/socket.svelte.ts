@@ -1,13 +1,11 @@
 import { writable } from 'svelte/store'
 
-export const start = writable({
-  page_src: '',
-  title: '',
-  enc_title: '',
-})
+type PageContent = {
+  id: number
+  page_src: string
+  title: string
+  enc_title: string
+}
 
-export const target = writable({
-  page_src: '',
-  title: '',
-  enc_title: '',
-})
+export const start = writable<PageContent>()
+export const target = writable<PageContent>()
