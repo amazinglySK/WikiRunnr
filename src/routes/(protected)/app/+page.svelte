@@ -19,7 +19,6 @@
     let start_id = parseInt(params.get('start'))
     let end_id = parseInt(params.get('end'))
     if (start_id && end_id) {
-      console.log(start_id, end_id, typeof start_id)
       await startGame(start_id, end_id)
     }
     if (PUBLIC_MODE == 'SOLO') {

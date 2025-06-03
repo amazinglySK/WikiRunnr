@@ -1,5 +1,12 @@
 import axios from 'axios'
 
+export type PageContent = {
+  id: number
+  page_src: string
+  title: string
+  enc_title: string
+}
+
 const MEDIAWIKI: string = 'https://en.wikipedia.org/w/api.php'
 
 export const fetchWiki = async (link: string) => {
@@ -28,7 +35,7 @@ export const getRandomArticleTitles = async (n: number) => {
         origin: '*',
       },
     })
-    const pages = response.data.query.random.map((e: any) => {
+    const pages: PageContent[] = response.data.query.random.map((e: any) => {
       delete e.ns
       e.page_src = e.title.replace(/ /g, '_')
       e.enc_title = encodeURIComponent(e.page_src)
@@ -52,25 +59,21 @@ export const getTitleFromId = async (...id: number[]) => {
         origin: '*',
       },
     })
-    const pages = Object.entries(response.data.query.pages).map(
-      ([k, v]: [any, any]) => {
-        console.log(k, v)
-        delete v.ns
-        let new_obj: {
-          id: number
-          page_src: string
-          title: string
-          enc_title: string
-        } = {
-          id: parseInt(k),
-          page_src: v.title.replace(/ /g, '_'),
-          title: v.title,
-          enc_title: '',
-        }
-        new_obj.enc_title = encodeURIComponent(new_obj.page_src)
-        return new_obj
-      },
-    )
+
+    const pages = id.map((id) => {
+      const k = id.toString()
+      const v = response.data.query.pages[k]
+      delete v.ns
+      let new_obj: PageContent = {
+        id: parseInt(k),
+        page_src: v.title.replace(/ /g, '_'),
+        title: v.title,
+        enc_title: '',
+      }
+      new_obj.enc_title = encodeURIComponent(new_obj.page_src)
+
+      return new_obj
+    })
     return pages
   } catch (error) {
     console.log('Oops, something went wrong')
