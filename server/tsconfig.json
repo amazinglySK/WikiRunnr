@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    /* Base Options: */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "ESNext",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    /* Strictness */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+
+    /* If you are using path aliases in other files, uncomment the following two lines */
+    // "baseUrl": ".",
+    // "paths": {
+    //   "@/*": ["./src/*"]
+    // },
+    
+    /* THE KEY FIX: Module settings for modern Node.js/Bun */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    /* Bun types */
+    "types": ["@types/bun"]
+  }
+}
