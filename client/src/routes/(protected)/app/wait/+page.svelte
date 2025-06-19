@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation'
   import { gameInfo, isLeader, username } from '$lib/stores/gameState.svelte'
   import { socket } from '$lib/stores/socket.svelte'
   console.log($gameInfo)

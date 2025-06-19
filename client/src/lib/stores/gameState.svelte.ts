@@ -22,6 +22,7 @@ interface GameInfo {
 
 export const username = writable('')
 export const isLeader = writable(false)
+export const soloGame = writable(true)
 export const start = writable<PageContent>()
 export const target = writable<PageContent>()
 export const gameCode = writable('')

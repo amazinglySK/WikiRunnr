@@ -36,9 +36,11 @@ export function initSocket(): void {
   })
 
   newSocket.on('start', (pages: PageContent[]) => {
+    console.log(pages[0], pages[1])
     start.set(pages[0])
     target.set(pages[1])
-    goto('/app/game/')
+    console.log('Starting the game')
+    goto('/app/game')
   })
   socket.set(newSocket)
   newSocket.connect()

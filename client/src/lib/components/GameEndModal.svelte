@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { start, target } from '$lib/stores/socket.svelte'
+  import { start, target } from '$lib/stores/gameState.svelte'
   import { fade } from 'svelte/transition'
   let modal_dial: HTMLDialogElement
   let close_btn: HTMLButtonElement

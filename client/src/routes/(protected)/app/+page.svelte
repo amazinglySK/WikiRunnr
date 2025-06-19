@@ -3,7 +3,12 @@
   import { PUBLIC_MODE } from '$env/static/public'
   import { onMount } from 'svelte'
   import { initSocket, socket } from '$lib/stores/socket.svelte'
-  import { gameInfo, username, isLeader } from '$lib/stores/gameState.svelte'
+  import {
+    gameInfo,
+    username,
+    isLeader,
+    soloGame,
+  } from '$lib/stores/gameState.svelte'
   import { goto } from '$app/navigation'
 
   let players = $state(2)
@@ -14,6 +19,7 @@
       const response = await $socket
         ?.timeout(5000)
         .emitWithAck('join_game', $username, code)
+      soloGame.set(false)
       gameInfo.set(response)
       alert(`Game joined!`)
       goto('/app/wait')
@@ -27,6 +33,7 @@
     }
 
     if (players == 1) {
+      goto('/app/game')
     } else {
       try {
         const response = await $socket
@@ -35,6 +42,7 @@
         gameInfo.set(response)
         alert(`Game created! Code: ${response.code}`)
         $isLeader = true
+        soloGame.set(false)
         goto('/app/wait')
       } catch (err) {
         console.error('Failed to create game:', err)

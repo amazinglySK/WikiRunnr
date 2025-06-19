@@ -1,41 +1,48 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte'
   import { startSoloGame } from '$lib/client'
-  import { start, target } from '$lib/stores/gameState.svelte'
+  import { socket } from '$lib/stores/socket.svelte'
   import Clock from '$lib/components/Clock.svelte'
+  import { soloGame, target, start } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { page } from '$app/stores'
 
   let started = $state(false)
   let currentLocation = $state('')
   let final_time = $state('')
-  let gameEndModal: GameEndModal
-  let clockRef: Clock
+  let gameEndModal: GameEndModal | undefined = $state<GameEndModal>()
+  let clockRef: Clock | undefined = $state<Clock>()
   let iframeRef: HTMLIFrameElement
 
   onMount(async () => {
+    console.log('Reached here')
     const params = $page.url.searchParams
-    let start_id = parseInt(params.get('start'))
-    let end_id = parseInt(params.get('end'))
+    let start_id = parseInt(params.get('start') ?? '')
+    let end_id = parseInt(params.get('end') ?? '')
+
     if (start_id && end_id) {
       await startGame(start_id, end_id)
     }
+
+    if (!$soloGame) await startGame()
   })
 
-  onDestroy(() => {})
+  onDestroy(() => {
+    $socket?.disconnect()
+  })
 
   const startGame = async (start_id?: number, end_id?: number) => {
-    await startSoloGame(start_id, end_id)
+    if ($soloGame) await startSoloGame(start_id, end_id)
     started = true
-    clockRef.reset()
-    clockRef.start()
+    clockRef?.reset()
+    clockRef?.start()
   }
 
   const restart = async () => {
-    clockRef.reset()
-    await startSoloGame()
+    clockRef?.reset()
+    if ($soloGame) await startSoloGame()
     started = true
-    clockRef.start()
+    clockRef?.start()
   }
 
   const finishGame = () => {
@@ -54,9 +61,9 @@
       // Win condition
       if ($target && $target.page_src && decoded_url === $target.page_src) {
         started = false
-        final_time = clockRef.getTime()
-        gameEndModal.show()
-        clockRef.stop()
+        final_time = clockRef?.getTime() ?? ''
+        gameEndModal?.show()
+        clockRef?.stop()
       }
     } catch (e) {
       console.log('Oops something went wrong')
@@ -109,7 +116,7 @@
 
 {#if import.meta.env.DEV}
   <div id="dev-tools" class="mx-auto my-4 text-center">
-    <button class="btn btn-soft btn-primary" onclick={gameEndModal.show}
+    <button class="btn btn-soft btn-primary" onclick={gameEndModal?.show}
       >Test modal</button
     >
     <button class="btn btn-soft btn-primary" onclick={finishGame}
