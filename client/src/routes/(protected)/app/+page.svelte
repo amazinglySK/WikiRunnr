@@ -1,8 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { PUBLIC_MODE } from '$env/static/public'
-  import { onMount } from 'svelte'
-  import { initSocket, socket } from '$lib/stores/socket.svelte'
+  import { socket } from '$lib/stores/socket.svelte'
   import {
     gameInfo,
     username,
@@ -49,14 +47,6 @@
       }
     }
   }
-
-  onMount(() => {
-    if (PUBLIC_MODE == 'MULTI') {
-      if (!$socket) {
-        initSocket()
-      }
-    }
-  })
 </script>
 
 <fieldset

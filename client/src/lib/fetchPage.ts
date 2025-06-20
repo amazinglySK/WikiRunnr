@@ -60,8 +60,8 @@ export const getTitleFromId = async (...id: number[]) => {
       },
     })
 
-    const pages = id.map((id) => {
-      const k = id.toString()
+    const pages = id.map((single_id) => {
+      const k = single_id.toString()
       const v = response.data.query.pages[k]
       delete v.ns
       let new_obj: PageContent = {

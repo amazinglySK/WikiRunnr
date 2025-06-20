@@ -1,26 +1,38 @@
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import { gameInfo, start, target } from './gameState.svelte'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import type { PageContent } from '$lib/fetchPage'
 import { goto } from '$app/navigation'
+import { PUBLIC_MODE } from '$env/static/public'
 
 export const socket = writable<Socket | null>(null)
 
 export function initSocket(): void {
+  if (PUBLIC_MODE !== 'MULTI') {
+    return
+  }
+
+  if (get(socket)?.connected) {
+    console.log('Already connected')
+    return
+  } else {
+    console.log('Creating a new socket')
+  }
+
   const URL = 'http://localhost:3000'
 
   const newSocket = io(URL, {
-    autoConnect: false,
+    autoConnect: true,
     withCredentials: true,
+    reconnectionAttempts: Infinity, // Keep trying to reconnect
+    reconnectionDelay: 1000, // Start with 1 second delay
+    reconnectionDelayMax: 5000, // Max 5 seconds delay
+    timeout: 20000, // Connection timeout
   })
 
   newSocket.on('connect', () => {
-    if (newSocket.recovered) {
-      console.log('Restored connection to server')
-    } else {
-      console.log('Connected to the server')
-    }
+    console.log('Connected to the server')
   })
 
   newSocket.on('disconnect', () => {
@@ -42,6 +54,6 @@ export function initSocket(): void {
     console.log('Starting the game')
     goto('/app/game')
   })
+
   socket.set(newSocket)
-  newSocket.connect()
 }

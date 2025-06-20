@@ -26,6 +26,7 @@ interface GameInfo {
 interface ServerToClientEvents {
   start: (pages: PageInfo[]) => void;
   update_game: (gameInfo: GameInfo) => void;
+  finisher: (username: string) => void;
 }
 
 interface ClientToServerEvents {
@@ -72,6 +73,14 @@ cache.hooks.addHandler(KeyvHooks.POST_SET, ({ key, value }) => {
 
 console.log("RUNNING THE SERVER");
 
+io.of("/").adapter.on("delete-room", async (room) => {
+  const isSocketId = io.sockets.sockets.has(room);
+  if (!isSocketId) {
+    await cache.delete(room);
+    console.log("DELETED ROOM");
+  }
+});
+
 io.on(
   "connection",
   (socket: Socket<ClientToServerEvents, ServerToClientEvents>) => {
@@ -102,7 +111,7 @@ io.on(
         lb: [],
       };
 
-      cache.set(newGame.code, newGame);
+      await cache.set(newGame.code, newGame);
       socket.join(newGame.code);
       ackCallback(newGame);
     });
@@ -117,7 +126,7 @@ io.on(
       let gameInfo = await cache.get<GameInfo>(code);
       const user: UserInfo = { id: socket.id, username: socket.data.username };
       gameInfo?.players.push(user);
-      cache.set(code, gameInfo);
+      await cache.set(code, gameInfo);
       socket.join(code);
 
       if (gameInfo) {
@@ -132,7 +141,7 @@ io.on(
       if (gameInfo) {
         gameInfo.started = true;
       }
-      cache.set(code, gameInfo);
+      await cache.set(code, gameInfo);
       const pages = await getRandomArticleTitles(2);
       console.log(pages);
       if (pages) {
@@ -157,8 +166,10 @@ io.on(
         socket_id: socket.id,
         time: time,
       };
+      console.log(`${socket.data.username} finished the game in room ${code}`);
       gameInfo?.lb.push(lb_entry);
-      cache.set(code, gameInfo);
+      await cache.set(code, gameInfo);
+      socket.to(code).emit("finisher", socket.data.username);
     });
 
     socket.on("disconnect", (reason) => {
