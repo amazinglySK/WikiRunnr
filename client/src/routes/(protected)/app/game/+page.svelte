@@ -12,30 +12,38 @@
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { page } from '$app/stores'
   import Toast from '$lib/components/Toast.svelte'
+  import Leaderboard from '$lib/components/Leaderboard.svelte'
+  import DevTools from '$lib/components/DevTools.svelte'
+  import GameBar from '$lib/components/GameBar.svelte'
 
   let started = $state(false)
   let currentLocation = $state('')
   let final_time = $state('')
   let gameEndModal: GameEndModal | undefined = $state<GameEndModal>()
   let clockRef: Clock | undefined = $state<Clock>()
-  let iframeRef: HTMLIFrameElement
+  let iframeRef: HTMLIFrameElement | undefined = $state<HTMLIFrameElement>()
   let toastRef: Toast | undefined = $state<Toast>()
 
   onMount(async () => {
-    const params = $page.url.searchParams
-    let start_id = parseInt(params.get('start') ?? '')
-    let end_id = parseInt(params.get('end') ?? '')
+    if ($soloGame) {
+      const params = $page.url.searchParams
+      let start_id = parseInt(params.get('start') ?? '')
+      let end_id = parseInt(params.get('end') ?? '')
 
-    $socket?.on('finisher', (username: string) => {
-      toastRef?.show(`${username} finished the game`)
-      console.log(`${username} finished the game`)
-    })
+      if (start_id && end_id) {
+        await startGame(start_id, end_id)
+      }
+    } else {
+      $socket?.on('finisher', (username: string) => {
+        toastRef?.show(`${username} finished the game`)
+      })
 
-    if (start_id && end_id) {
-      await startGame(start_id, end_id)
+      $socket?.on('start', async (_) => {
+        await startGame()
+      })
+
+      await startGame()
     }
-
-    if (!$soloGame) await startGame()
   })
 
   onDestroy(() => {
@@ -51,9 +59,13 @@
 
   const restart = async () => {
     clockRef?.reset()
-    if ($soloGame) await startSoloGame()
-    started = true
-    clockRef?.start()
+    if ($soloGame) {
+      await startSoloGame()
+      started = true
+      clockRef?.start()
+    } else {
+      $socket?.emit('restart')
+    }
   }
 
   const finishGame = () => {
@@ -72,11 +84,11 @@
       // Win condition
       if ($target && $target.page_src && decoded_url === $target.page_src) {
         started = false
+        clockRef?.stop()
         final_time = clockRef?.getTime() ?? ''
         if (!$soloGame)
           $socket?.emit('finish', $gameInfo.code, clockRef?.getSeconds())
         gameEndModal?.show()
-        clockRef?.stop()
       }
     } catch (e) {
       console.log('Oops something went wrong')
@@ -85,33 +97,10 @@
   }
 </script>
 
-<div class="flex w-full items-center justify-between py-2">
-  {#if $soloGame}
-    <button
-      class={`btn btn-secondary btn-md ${started && 'btn-disabled'}`}
-      onclick={() => {
-        startGame()
-      }}
-    >
-      Start</button
-    >
-  {/if}
-  {#if started}
-    <div class="text-md flex items-center gap-2">
-      <span class="material-symbols-outlined"> flag </span>
-      <span
-        ><a
-          class="link"
-          target="_blank"
-          href={`https://en.wikipedia.org/wiki/${$target.enc_title}`}
-          >{$target.title}</a
-        ></span
-      >
-    </div>
-  {/if}
-  <Clock bind:this={clockRef}></Clock>
-</div>
-<div class="mockup-browser border-base-300 border">
+<Leaderboard {started} onrestart={restart} />
+<GameBar {started} {startGame} bind:clockRef />
+
+<div class="mockup-browser border-base-300 border {!started && 'hidden'}">
   <div class="mockup-browser-toolbar">
     <div class="input">
       {currentLocation}
@@ -129,22 +118,17 @@
   >
   </iframe>
 </div>
+
 <GameEndModal bind:this={gameEndModal} {restart} time={final_time} />
 <Toast bind:this={toastRef} />
-{#if import.meta.env.DEV}
-  <div id="dev-tools" class="mx-auto my-4 text-center">
-    <button class="btn btn-soft btn-primary" onclick={gameEndModal?.show}
-      >Test modal</button
-    >
-    <button class="btn btn-soft btn-primary" onclick={finishGame}
-      >Finish game</button
-    >
 
-    <button
-      class="btn btn-soft btn-primary"
-      onclick={() => {
-        toastRef?.show('This is a test')
-      }}>Test toast</button
-    >
-  </div>
-{/if}
+<DevTools
+  modalTrigger={gameEndModal?.show}
+  finishGameTrigger={finishGame}
+  toastTrigger={() => {
+    toastRef?.show('This is a test')
+  }}
+  leaderboardTrigger={() => {
+    started = false
+  }}
+/>

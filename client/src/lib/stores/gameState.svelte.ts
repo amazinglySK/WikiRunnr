@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
 import type { PageContent } from '$lib/fetchPage'
 
 type UserInfo = {
@@ -25,5 +25,5 @@ export const isLeader = writable(false)
 export const soloGame = writable(true)
 export const start = writable<PageContent>()
 export const target = writable<PageContent>()
-export const gameCode = writable('')
 export const gameInfo = writable<GameInfo>()
+export const gameCode = derived(gameInfo, ($g) => $g.code)

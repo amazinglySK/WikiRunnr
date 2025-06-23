@@ -153,10 +153,13 @@ io.on(
       let gameInfo = await cache.get<GameInfo>(code);
       if (gameInfo) {
         gameInfo.lb = [];
+        gameInfo.started = true;
       }
+      await cache.set(code, gameInfo);
       const pages = await getRandomArticleTitles(2);
       if (pages) {
         io.to(code).emit("start", pages);
+        console.log("Restarted game");
       }
     });
     socket.on("finish", async (code, time) => {

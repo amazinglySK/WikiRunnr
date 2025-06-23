@@ -52,7 +52,7 @@ export function initSocket(): void {
     start.set(pages[0])
     target.set(pages[1])
     console.log('Starting the game')
-    goto('/app/game')
+    goto('/app/game/')
   })
 
   socket.set(newSocket)
