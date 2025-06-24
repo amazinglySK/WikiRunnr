@@ -3,7 +3,6 @@
   import { onMount } from 'svelte'
 
   onMount(() => {
-    console.log('Running this')
     initSocket()
   })
 

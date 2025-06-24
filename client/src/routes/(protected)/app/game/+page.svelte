@@ -10,7 +10,7 @@
     gameInfo,
   } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
-  import { page } from '$app/stores'
+  import { page } from '$app/state'
   import Toast from '$lib/components/Toast.svelte'
   import Leaderboard from '$lib/components/Leaderboard.svelte'
   import DevTools from '$lib/components/DevTools.svelte'
@@ -26,12 +26,16 @@
 
   onMount(async () => {
     if ($soloGame) {
-      const params = $page.url.searchParams
+      console.log('HELLO')
+      const params = page.url.searchParams
       let start_id = parseInt(params.get('start') ?? '')
       let end_id = parseInt(params.get('end') ?? '')
 
       if (start_id && end_id) {
         await startGame(start_id, end_id)
+      } else {
+        console.log('Starting game')
+        await startGame()
       }
     } else {
       $socket?.on('finisher', (username: string) => {
@@ -100,7 +104,11 @@
 <Leaderboard {started} onrestart={restart} />
 <GameBar {started} {startGame} bind:clockRef />
 
-<div class="mockup-browser border-base-300 border {!started && 'hidden'}">
+<div
+  class="mockup-browser border-base-300 border {!started &&
+    !$soloGame &&
+    'hidden'}"
+>
   <div class="mockup-browser-toolbar">
     <div class="input">
       {currentLocation}

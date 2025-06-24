@@ -31,6 +31,7 @@
     }
 
     if (players == 1) {
+      soloGame.set(true)
       goto('/app/game')
     } else {
       try {

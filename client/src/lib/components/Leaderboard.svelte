@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { isLeader, gameCode, gameInfo } from '../stores/gameState.svelte'
+  import {
+    isLeader,
+    gameCode,
+    gameInfo,
+    soloGame,
+  } from '../stores/gameState.svelte'
   import { socket } from '../stores/socket.svelte'
 
   let { started, onrestart } = $props()
@@ -16,7 +21,7 @@
   }
 </script>
 
-{#if !started}
+{#if !started && !$soloGame}
   <div class="mx-auto w-3/5">
     <ul class="list bg-base-100 rounded-box shadow-md">
       <li class="p-4 pb-2 text-lg tracking-wide opacity-60">Leaderboard</li>
