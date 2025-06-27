@@ -17,6 +17,7 @@ type Leadeboard = {
 
 interface GameInfo {
   code: string;
+  num: number;
   leader_id: string;
   players: UserInfo[];
   lb: Leadeboard;
@@ -30,18 +31,20 @@ interface ServerToClientEvents {
 }
 
 interface ClientToServerEvents {
-  start: (code: string) => void;
+  start: () => void;
   new_game: (
     username: string,
+    num_players: number,
     ackCallback: (gameInfo: GameInfo | Error) => void,
   ) => void;
-  restart: (code: string) => void;
+  kick_player: (user: UserInfo) => void;
+  restart: () => void;
   join_game: (
     username: string,
     code: string,
     ackCallback: (gameState: GameInfo | Error) => void,
   ) => void;
-  finish: (code: string, time: number) => void;
+  finish: (time: number) => void;
 }
 
 const cache = new Keyv<GameInfo>({
@@ -63,11 +66,9 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(PORT, {
 });
 
 cache.hooks.addHandler(KeyvHooks.POST_SET, ({ key, value }) => {
-  console.log(`Set key ${key} to ${value}`);
   const trim_len = "keyv:".length;
   key = key.slice(trim_len);
   const json_val = JSON.parse(value).value;
-  console.log(typeof json_val);
   io.to(key).emit("update_game", json_val);
 });
 
@@ -94,14 +95,14 @@ io.on(
       console.log("Event triggered: ", eventName);
     });
 
-    socket.on("new_game", async (username, ackCallback) => {
+    socket.on("new_game", async (username, num_players, ackCallback) => {
       socket.data.username = username;
-      console.log(username);
       const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz", 6);
       const newGame: GameInfo = {
         code: nanoid(),
         started: false,
         leader_id: socket.id,
+        num: num_players,
         players: [
           {
             id: socket.id,
@@ -111,19 +112,34 @@ io.on(
         lb: [],
       };
 
+      socket.data.code = newGame.code;
       await cache.set(newGame.code, newGame);
       socket.join(newGame.code);
       ackCallback(newGame);
     });
 
+    socket.on("kick_player", async (user) => {
+      const code = socket.data.code;
+      let game = await cache.get(code);
+      const idx =
+        game?.players.findIndex((val) => val.username === user.username) ?? -1;
+      if (idx != -1) {
+        game?.players.splice(idx, 1);
+      }
+      await cache.set(code, game);
+    });
+
     socket.on("join_game", async (username, code, ackCallback) => {
-      console.log(username);
       if (!cache.has(code)) {
         ackCallback(new Error("Error: Incorrect code"));
       }
       socket.data.username = username;
+      socket.data.code = code;
 
       let gameInfo = await cache.get<GameInfo>(code);
+      if (gameInfo && gameInfo?.players.length >= gameInfo?.num)
+        ackCallback(new Error("Error: Game is full"));
+
       const user: UserInfo = { id: socket.id, username: socket.data.username };
       gameInfo?.players.push(user);
       await cache.set(code, gameInfo);
@@ -136,20 +152,21 @@ io.on(
       }
     });
 
-    socket.on("start", async (code) => {
+    socket.on("start", async () => {
+      const code = socket.data.code;
       let gameInfo = await cache.get<GameInfo>(code);
       if (gameInfo) {
         gameInfo.started = true;
       }
       await cache.set(code, gameInfo);
       const pages = await getRandomArticleTitles(2);
-      console.log(pages);
       if (pages) {
         io.to(code).emit("start", pages);
       }
     });
 
-    socket.on("restart", async (code) => {
+    socket.on("restart", async () => {
+      const code = socket.data.code;
       let gameInfo = await cache.get<GameInfo>(code);
       if (gameInfo) {
         gameInfo.lb = [];
@@ -159,23 +176,35 @@ io.on(
       const pages = await getRandomArticleTitles(2);
       if (pages) {
         io.to(code).emit("start", pages);
-        console.log("Restarted game");
       }
     });
-    socket.on("finish", async (code, time) => {
+    socket.on("finish", async (time) => {
+      const code = socket.data.code;
       let gameInfo = await cache.get<GameInfo>(code);
       const lb_entry = {
         name: socket.data.username,
         socket_id: socket.id,
         time: time,
       };
-      console.log(`${socket.data.username} finished the game in room ${code}`);
       gameInfo?.lb.push(lb_entry);
       await cache.set(code, gameInfo);
       socket.to(code).emit("finisher", socket.data.username);
     });
 
-    socket.on("disconnect", (reason) => {
+    socket.on("disconnect", async (reason) => {
+      const code = socket.data.code;
+
+      let gameInfo = await cache.get(code);
+      const lb_index =
+        gameInfo?.lb.findIndex((obj) => obj.socket_id === socket.id) ?? -1;
+      const player_index =
+        gameInfo?.players.findIndex((obj) => obj.id === socket.id) ?? -1;
+
+      if (lb_index !== -1) gameInfo?.lb.splice(lb_index, 1);
+      if (player_index !== -1) gameInfo?.players.splice(player_index, 1);
+
+      await cache.set(code, gameInfo);
+
       console.log(
         socket.id + " disconnected from the server due to: " + reason,
       );

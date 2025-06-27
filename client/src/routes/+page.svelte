@@ -1,5 +1,5 @@
-<main class="flex h-screen items-center">
-  <form method="POST" class="mx-auto flex max-w-max flex-col gap-2">
+<main class="flex items-center">
+  <form method="POST" class="mx-auto mt-4 flex max-w-max flex-col gap-2">
     <fieldset
       class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
     >

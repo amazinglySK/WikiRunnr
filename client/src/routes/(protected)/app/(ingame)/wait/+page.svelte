@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { gameInfo, isLeader, username } from '$lib/stores/gameState.svelte'
+  import {
+    gameInfo,
+    gameCode,
+    isLeader,
+    username,
+  } from '$lib/stores/gameState.svelte'
+  import Avatar from '$lib/components/Avatar.svelte'
   import { socket } from '$lib/stores/socket.svelte'
   console.log($gameInfo)
 
@@ -7,17 +13,20 @@
     if (!$gameInfo?.code) {
       alert('Something went wrong')
     }
-    $socket?.emit('start', $gameInfo?.code)
+    $socket?.emit('start')
   }
 
   const copy_code = async () => {
     try {
-      const code = $gameInfo?.code
-      await navigator.clipboard.writeText(code)
-      alert('copied the game code')
+      await navigator.clipboard.writeText($gameCode)
     } catch (e) {
       console.error(e)
     }
+  }
+
+  const kick = async (idx: number) => {
+    const player = $gameInfo.players.at(idx)
+    $socket?.emit('kick_player', player)
   }
 </script>
 
@@ -42,20 +51,20 @@
     </div>
   </div>
   <ul class="list bg-base-100 rounded-box shadow-md">
-    {#each $gameInfo?.players ?? [] as player}
+    {#each $gameInfo?.players ?? [] as player, idx}
       <li class="list-row">
         <div>
-          <img
-            class="rounded-box size-10"
-            src="https://img.daisyui.com/images/profile/demo/1@94.webp"
-          />
+          <Avatar seed={player.id} />
         </div>
         <div class="flex h-full items-center">
           <div class="text-xl">{player.username}</div>
         </div>
         {#if $isLeader}
-          <button class="btn btn-square btn-ghost"
-            ><span class="material-symbols-outlined"> close </span></button
+          <button
+            class="btn btn-square btn-ghost"
+            onclick={() => {
+              kick(idx)
+            }}><span class="material-symbols-outlined"> close </span></button
           >
         {/if}
       </li>

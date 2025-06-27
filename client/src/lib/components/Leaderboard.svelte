@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    isLeader,
-    gameCode,
-    gameInfo,
-    soloGame,
-  } from '../stores/gameState.svelte'
+  import { isLeader, gameInfo, soloGame } from '../stores/gameState.svelte'
+  import Avatar from './Avatar.svelte'
   import { socket } from '../stores/socket.svelte'
 
   let { started, onrestart } = $props()
@@ -16,7 +12,7 @@
   }
 
   const restart = () => {
-    $socket?.emit('restart', $gameCode)
+    $socket?.emit('restart')
     onrestart()
   }
 </script>
@@ -31,6 +27,9 @@
           <div class="text-3xl font-thin tabular-nums opacity-30">
             #{index + 1}
           </div>
+          <div>
+            <Avatar seed={player.socket_id} />
+          </div>
           <div class="list-col-grow align-middle text-lg">
             {player.name}
           </div>
@@ -39,7 +38,7 @@
       {/each}
     </ul>
     {#if $isLeader}
-      <div>
+      <div class="mt-4 text-center">
         <button class="btn btn-primary" onclick={restart}>Restart Game</button>
       </div>
     {/if}

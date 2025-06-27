@@ -19,7 +19,6 @@
         .emitWithAck('join_game', $username, code)
       soloGame.set(false)
       gameInfo.set(response)
-      alert(`Game joined!`)
       goto('/app/wait')
     } catch (err) {
       console.error('Failed to join game:', err)
@@ -39,7 +38,6 @@
           ?.timeout(5000)
           .emitWithAck('new_game', $username)
         gameInfo.set(response)
-        alert(`Game created! Code: ${response.code}`)
         $isLeader = true
         soloGame.set(false)
         goto('/app/wait')

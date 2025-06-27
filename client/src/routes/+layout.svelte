@@ -1,5 +1,7 @@
 <script lang="ts">
   import '../app.css'
+  import { socket } from '$lib/stores/socket.svelte'
+  import { soloGame } from '$lib/stores/gameState.svelte'
   let { children } = $props()
 </script>
 
@@ -13,6 +15,9 @@
 <h1 class="pt-3 text-center text-4xl font-bold">WikiRunnr</h1>
 {#if import.meta.env.DEV}
   <p class="text-center">(Debug Mode)</p>
+  {#if !$soloGame}
+    <p class="text-center">Socket ID: {$socket?.id}</p>
+  {/if}
 {/if}
 <main class="mx-auto max-w-3/4">
   {@render children()}

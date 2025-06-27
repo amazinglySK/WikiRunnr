@@ -3,12 +3,7 @@
   import { startSoloGame } from '$lib/client'
   import { socket } from '$lib/stores/socket.svelte'
   import Clock from '$lib/components/Clock.svelte'
-  import {
-    soloGame,
-    target,
-    start,
-    gameInfo,
-  } from '$lib/stores/gameState.svelte'
+  import { soloGame, target, start } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { page } from '$app/state'
   import Toast from '$lib/components/Toast.svelte'
@@ -90,8 +85,7 @@
         started = false
         clockRef?.stop()
         final_time = clockRef?.getTime() ?? ''
-        if (!$soloGame)
-          $socket?.emit('finish', $gameInfo.code, clockRef?.getSeconds())
+        if (!$soloGame) $socket?.emit('finish', clockRef?.getSeconds())
         gameEndModal?.show()
       }
     } catch (e) {

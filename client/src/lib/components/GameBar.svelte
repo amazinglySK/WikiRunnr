@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { soloGame, target } from '../stores/gameState.svelte'
+  import { soloGame, target, username } from '../stores/gameState.svelte'
   import Clock from './Clock.svelte'
 
   let { started, startGame, clockRef = $bindable() } = $props()
@@ -8,6 +8,13 @@
 <div
   class="{!started && 'hidden'} flex w-full items-center justify-between py-2"
 >
+  {#if !$soloGame}
+    <div class="text-md inline-flex gap-2">
+      <span class="material-symbols-outlined"> account_circle </span>
+      <span>{$username}</span>
+    </div>
+  {/if}
+
   <div class="text-md flex items-center gap-2">
     <span class="material-symbols-outlined"> flag </span>
     <span

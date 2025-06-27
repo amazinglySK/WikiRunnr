@@ -38,6 +38,8 @@
     "vite": "^6.2.6"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.2.3",
+    "@dicebear/core": "^9.2.3",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
     "socket.io-client": "^4.8.1"
