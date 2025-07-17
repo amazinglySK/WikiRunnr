@@ -22,7 +22,6 @@
       const url = new URL('/app', window.location.origin)
       url.searchParams.set('start', $start.id.toString())
       url.searchParams.set('end', $target.id.toString())
-      console.log(url.toString())
       await navigator.clipboard.writeText(url.toString())
 
       showToast = true

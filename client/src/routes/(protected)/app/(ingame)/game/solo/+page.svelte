@@ -1,12 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { socket } from '$lib/stores/socket.svelte'
+  import { startSoloGame } from '$lib/client'
   import Clock from '$lib/components/Clock.svelte'
   import { target, start } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
-  import { goto } from '$app/navigation'
+  import { page } from '$app/state'
   import Toast from '$lib/components/Toast.svelte'
-  import Leaderboard from '$lib/components/Leaderboard.svelte'
   import DevTools from '$lib/components/DevTools.svelte'
   import GameBar from '$lib/components/GameBar.svelte'
 
@@ -19,18 +18,21 @@
   let toastRef: Toast | undefined = $state<Toast>()
 
   onMount(async () => {
-    $socket?.on('finisher', (username: string) => {
-      toastRef?.addToast(`${username} finished the game`, 'success')
-    })
+    console.log("Mounting")
+    const params = page.url.searchParams
+    let start_id = parseInt(params.get('start') ?? '')
+    let end_id = parseInt(params.get('end') ?? '')
 
-    $socket?.on('start', async (_) => {
+    if (start_id && end_id) {
+      await startGame(start_id, end_id)
+    } else {
+	  console.log("Hitting this")
       await startGame()
-    })
-
-    await startGame()
+    }
   })
 
   const startGame = async (start_id?: number, end_id?: number) => {
+    await startSoloGame(start_id, end_id)
     started = true
     clockRef?.reset()
     clockRef?.start()
@@ -38,12 +40,9 @@
 
   const restart = async () => {
     clockRef?.reset()
-    $socket?.emit('restart')
-  }
-
-  const endGame = () => {
-    $socket?.emit('end_game')
-    goto('/app/')
+    await startSoloGame()
+    started = true
+    clockRef?.start()
   }
 
   const finishGame = () => {
@@ -64,7 +63,6 @@
         started = false
         clockRef?.stop()
         final_time = clockRef?.getTime() ?? ''
-        $socket?.emit('finish', clockRef?.getSeconds())
         gameEndModal?.show()
       }
     } catch (e) {
@@ -73,10 +71,9 @@
   }
 </script>
 
-<Leaderboard {started} onrestart={restart} onendgame={endGame} />
 <GameBar {started} {startGame} bind:clockRef />
 
-<div class="mockup-browser border-base-300 border {!started && 'hidden'}">
+<div class="mockup-browser border-base-300 border">
   <div class="mockup-browser-toolbar">
     <div class="input">
       {currentLocation}
@@ -84,8 +81,8 @@
   </div>
   <iframe
     onload={handleFrameLoad}
-    src={started && $start?.enc_title
-      ? `/wiki/${$start?.enc_title}`
+    src={started && $start.enc_title
+      ? `/wiki/${$start.enc_title}`
       : '/wiki/Wikipedia'}
     bind:this={iframeRef}
     title="game window"

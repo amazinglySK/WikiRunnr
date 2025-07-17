@@ -1,6 +1,6 @@
 import type { Actions } from './$types'
 import { ACCESS_CODE } from '$env/static/private'
-import { redirect, type Load } from '@sveltejs/kit'
+import { redirect } from '@sveltejs/kit'
 import { hash } from 'bcrypt'
 
 export const actions = {

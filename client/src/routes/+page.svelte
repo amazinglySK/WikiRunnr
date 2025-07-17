@@ -14,4 +14,5 @@
     </fieldset>
     <button class="btn btn-soft btn-accent">Get access</button>
   </form>
+  >
 </main>

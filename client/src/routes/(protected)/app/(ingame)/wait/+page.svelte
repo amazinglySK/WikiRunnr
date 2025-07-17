@@ -7,7 +7,6 @@
   } from '$lib/stores/gameState.svelte'
   import Avatar from '$lib/components/Avatar.svelte'
   import { socket } from '$lib/stores/socket.svelte'
-  console.log($gameInfo)
 
   const onStart = () => {
     if (!$gameInfo?.code) {
@@ -25,7 +24,7 @@
   }
 
   const kick = async (idx: number) => {
-    const player = $gameInfo.players.at(idx)
+    const player = $gameInfo?.players.at(idx)
     $socket?.emit('kick_player', player)
   }
 </script>

@@ -28,10 +28,12 @@ interface ServerToClientEvents {
   start: (pages: PageInfo[]) => void;
   update_game: (gameInfo: GameInfo) => void;
   finisher: (username: string) => void;
+  end_game: () => void;
 }
 
 interface ClientToServerEvents {
   start: () => void;
+  end_game: () => void;
   new_game: (
     username: string,
     num_players: number,
@@ -118,6 +120,12 @@ io.on(
       ackCallback(newGame);
     });
 
+    socket.on("end_game", async () => {
+      const code = socket.data.code;
+      await cache.delete(code);
+      socket.to(code).emit("end_game");
+    });
+
     socket.on("kick_player", async (user) => {
       const code = socket.data.code;
       let game = await cache.get(code);
@@ -132,13 +140,16 @@ io.on(
     socket.on("join_game", async (username, code, ackCallback) => {
       if (!cache.has(code)) {
         ackCallback(new Error("Error: Incorrect code"));
+        return;
       }
       socket.data.username = username;
       socket.data.code = code;
 
       let gameInfo = await cache.get<GameInfo>(code);
-      if (gameInfo && gameInfo?.players.length >= gameInfo?.num)
+      if (gameInfo && gameInfo?.players.length >= gameInfo?.num) {
         ackCallback(new Error("Error: Game is full"));
+        return;
+      }
 
       const user: UserInfo = { id: socket.id, username: socket.data.username };
       gameInfo?.players.push(user);

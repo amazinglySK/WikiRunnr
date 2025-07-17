@@ -1,0 +1,19 @@
+{
+  "name": "wikirunnr-repo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Client and server for WikiRunnr App",
+  "scripts": {
+    "install:all": "bun install",
+    "dev:client": "bun --workspace client dev",
+    "build:client": "bun --workspace client build",
+    "preview:client": "bun --workspace client preview",
+    "dev:server": "bun --workspace server dev",
+    "start:server": "bun --workspace server start",
+    "audit:all": "bun audit"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ]
+}

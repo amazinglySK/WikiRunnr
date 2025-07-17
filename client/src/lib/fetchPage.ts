@@ -43,7 +43,6 @@ export const getRandomArticleTitles = async (n: number) => {
     })
     return pages
   } catch (error) {
-    console.log('Oops, something went wrong')
     console.error(error)
   }
 }
@@ -76,7 +75,6 @@ export const getTitleFromId = async (...id: number[]) => {
     })
     return pages
   } catch (error) {
-    console.log('Oops, something went wrong')
     console.error(error)
   }
 }

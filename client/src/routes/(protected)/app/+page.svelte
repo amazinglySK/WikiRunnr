@@ -36,7 +36,7 @@
       try {
         const response = await $socket
           ?.timeout(5000)
-          .emitWithAck('new_game', $username)
+          .emitWithAck('new_game', $username, players)
         gameInfo.set(response)
         $isLeader = true
         soloGame.set(false)

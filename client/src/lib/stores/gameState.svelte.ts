@@ -25,9 +25,11 @@ export const isLeader = writable(false)
 export const soloGame = writable(true)
 export const start = writable<PageContent>()
 export const target = writable<PageContent>()
-export const gameInfo = writable<GameInfo>()
-export const inGame = derived(
-  [gameInfo, username],
-  ([$g, $u]) => $g.players.findIndex((p: UserInfo) => p.username == $u) != -1,
-)
+export const gameInfo = writable<GameInfo | null>()
+export const inGame = derived([gameInfo, username], ([$g, $u]) => {
+  if (!$g) {
+    return false
+  }
+  return $g.players.findIndex((p: UserInfo) => p.username == $u) !== -1
+})
 export const gameCode = derived(gameInfo, ($g) => $g.code)

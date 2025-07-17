@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store'
-import { gameInfo, start, target } from './gameState.svelte'
+import { gameInfo, isLeader, soloGame, start, target } from './gameState.svelte'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import type { PageContent } from '$lib/fetchPage'
@@ -48,11 +48,20 @@ export function initSocket(): void {
   })
 
   newSocket.on('start', (pages: PageContent[]) => {
-    console.log(pages[0], pages[1])
     start.set(pages[0])
     target.set(pages[1])
-    console.log('Starting the game')
-    goto('/app/game/')
+    if (get(soloGame)) {
+      goto('/app/game/solo')
+    } else {
+      goto('/app/game/')
+    }
+  })
+
+  newSocket.on('end_game', () => {
+    gameInfo.set(null)
+    isLeader.set(false)
+    soloGame.set(true)
+    goto('/app/')
   })
 
   socket.set(newSocket)
