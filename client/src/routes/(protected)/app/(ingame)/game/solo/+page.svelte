@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { startSoloGame } from '$lib/client'
   import Clock from '$lib/components/Clock.svelte'
-  import { target, start } from '$lib/stores/gameState.svelte'
+  import { target, start, toastRef } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { page } from '$app/state'
   import Toast from '$lib/components/Toast.svelte'
@@ -15,10 +15,9 @@
   let gameEndModal: GameEndModal | undefined = $state<GameEndModal>()
   let clockRef: Clock | undefined = $state<Clock>()
   let iframeRef: HTMLIFrameElement | undefined = $state<HTMLIFrameElement>()
-  let toastRef: Toast | undefined = $state<Toast>()
 
   onMount(async () => {
-    console.log("Mounting")
+    console.log('Mounting')
     const params = page.url.searchParams
     let start_id = parseInt(params.get('start') ?? '')
     let end_id = parseInt(params.get('end') ?? '')
@@ -26,7 +25,7 @@
     if (start_id && end_id) {
       await startGame(start_id, end_id)
     } else {
-	  console.log("Hitting this")
+      console.log('Hitting this')
       await startGame()
     }
   })
@@ -93,13 +92,12 @@
 </div>
 
 <GameEndModal bind:this={gameEndModal} {restart} time={final_time} />
-<Toast bind:this={toastRef} />
 
 <DevTools
   modalTrigger={gameEndModal?.show}
   finishGameTrigger={finishGame}
   toastTrigger={() => {
-    toastRef?.addToast('This is a test', 'success')
+    $toastRef?.addToast('This is a test', 'success')
   }}
   leaderboardTrigger={() => {
     started = false

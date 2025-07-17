@@ -6,6 +6,7 @@
     username,
     isLeader,
     soloGame,
+    toastRef,
   } from '$lib/stores/gameState.svelte'
   import { goto } from '$app/navigation'
 
@@ -14,14 +15,19 @@
 
   const joinGame = async () => {
     try {
-      const response = await $socket
+      const [err, response] = await $socket
         ?.timeout(5000)
         .emitWithAck('join_game', $username, code)
+      if (err) {
+        $toastRef?.addToast(err.message, 'error')
+        return
+      }
       soloGame.set(false)
       gameInfo.set(response)
       goto('/app/wait')
     } catch (err) {
       console.error('Failed to join game:', err)
+      $toastRef?.addToast('Facing some network issues', 'error')
     }
   }
   const startGame = async () => {
@@ -31,18 +37,23 @@
 
     if (players == 1) {
       soloGame.set(true)
-      goto('/app/game')
+      goto('/app/game/solo')
     } else {
       try {
-        const response = await $socket
+        const [err, response] = await $socket
           ?.timeout(5000)
           .emitWithAck('new_game', $username, players)
+        if (err) {
+          $toastRef?.addToast(err.message, 'error')
+          return
+        }
         gameInfo.set(response)
         $isLeader = true
         soloGame.set(false)
         goto('/app/wait')
       } catch (err) {
         console.error('Failed to create game:', err)
+        $toastRef?.addToast('Facing some network issues', 'error')
       }
     }
   }
@@ -54,8 +65,9 @@
   {#if !page.url.searchParams.has('join')}
     <legend class="fieldset-legend">Game settings</legend>
 
-    <label class="label">Number of players</label>
+    <label for="num_players" class="label">Number of players</label>
     <input
+      id="num_players"
       type="number"
       class="input"
       placeholder="2"
@@ -65,8 +77,9 @@
       required
     />
 
-    <label class="label">Username</label>
+    <label for="username" class="label">Username</label>
     <input
+      id="username"
       type="text"
       class="input"
       placeholder="Bombardillo Crocodillo"
@@ -81,16 +94,18 @@
   {:else}
     <legend class="fieldset-legend">Join game</legend>
 
-    <label class="label">Username</label>
+    <label for="username" class="label">Username</label>
     <input
+      id="username"
       type="text"
       class="input"
       placeholder="Bombardillo Crocodillo"
       bind:value={$username}
     />
 
-    <label class="label">Game code</label>
+    <label for="game_code" class="label">Game code</label>
     <input
+      id="game_code"
       type="text"
       class="input"
       placeholder="Enter game code"

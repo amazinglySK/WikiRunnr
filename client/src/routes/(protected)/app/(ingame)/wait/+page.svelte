@@ -4,9 +4,13 @@
     gameCode,
     isLeader,
     username,
+    inGame,
+    toastRef,
   } from '$lib/stores/gameState.svelte'
   import Avatar from '$lib/components/Avatar.svelte'
   import { socket } from '$lib/stores/socket.svelte'
+  import { onDestroy, onMount } from 'svelte'
+  import { goto } from '$app/navigation'
 
   const onStart = () => {
     if (!$gameInfo?.code) {
@@ -18,6 +22,7 @@
   const copy_code = async () => {
     try {
       await navigator.clipboard.writeText($gameCode)
+      $toastRef?.addToast('Copied to clipboard', 'success')
     } catch (e) {
       console.error(e)
     }
@@ -27,6 +32,19 @@
     const player = $gameInfo?.players.at(idx)
     $socket?.emit('kick_player', player)
   }
+
+  let unsubscribe: any = null
+  onMount(() => {
+    unsubscribe = inGame.subscribe((v: boolean) => {
+      if (!v) {
+        goto('/app/')
+      }
+    })
+  })
+
+  onDestroy(() => {
+    if (unsubscribe) unsubscribe()
+  })
 </script>
 
 <div class="w-full">

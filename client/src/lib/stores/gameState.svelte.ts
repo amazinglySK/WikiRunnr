@@ -1,5 +1,6 @@
 import { derived, writable } from 'svelte/store'
 import type { PageContent } from '$lib/fetchPage'
+import Toast from '$lib/components/Toast.svelte'
 
 type UserInfo = {
   username: string
@@ -32,4 +33,5 @@ export const inGame = derived([gameInfo, username], ([$g, $u]) => {
   }
   return $g.players.findIndex((p: UserInfo) => p.username == $u) !== -1
 })
-export const gameCode = derived(gameInfo, ($g) => $g.code)
+export const gameCode = derived(gameInfo, ($g) => $g?.code)
+export const toastRef = writable<Toast>()

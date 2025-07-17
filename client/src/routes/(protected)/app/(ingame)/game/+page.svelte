@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
   import { socket } from '$lib/stores/socket.svelte'
   import Clock from '$lib/components/Clock.svelte'
-  import { target, start } from '$lib/stores/gameState.svelte'
+  import { target, start, inGame, toastRef } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { goto } from '$app/navigation'
-  import Toast from '$lib/components/Toast.svelte'
   import Leaderboard from '$lib/components/Leaderboard.svelte'
   import DevTools from '$lib/components/DevTools.svelte'
   import GameBar from '$lib/components/GameBar.svelte'
@@ -16,11 +15,17 @@
   let gameEndModal: GameEndModal | undefined = $state<GameEndModal>()
   let clockRef: Clock | undefined = $state<Clock>()
   let iframeRef: HTMLIFrameElement | undefined = $state<HTMLIFrameElement>()
-  let toastRef: Toast | undefined = $state<Toast>()
 
+  let unsubscribe: any = null
   onMount(async () => {
+    unsubscribe = inGame.subscribe((v: boolean) => {
+      if (!v) {
+        goto('/app/')
+      }
+    })
+
     $socket?.on('finisher', (username: string) => {
-      toastRef?.addToast(`${username} finished the game`, 'success')
+      $toastRef?.addToast(`${username} finished the game`, 'success')
     })
 
     $socket?.on('start', async (_) => {
@@ -71,6 +76,10 @@
       console.error(e)
     }
   }
+
+  onDestroy(() => {
+    if (unsubscribe) unsubscribe()
+  })
 </script>
 
 <Leaderboard {started} onrestart={restart} onendgame={endGame} />
@@ -96,13 +105,12 @@
 </div>
 
 <GameEndModal bind:this={gameEndModal} {restart} time={final_time} />
-<Toast bind:this={toastRef} />
 
 <DevTools
   modalTrigger={gameEndModal?.show}
   finishGameTrigger={finishGame}
   toastTrigger={() => {
-    toastRef?.addToast('This is a test', 'success')
+    $toastRef?.addToast('This is a test', 'success')
   }}
   leaderboardTrigger={() => {
     started = false

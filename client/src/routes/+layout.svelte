@@ -1,7 +1,8 @@
 <script lang="ts">
   import '../app.css'
   import { socket } from '$lib/stores/socket.svelte'
-  import { soloGame } from '$lib/stores/gameState.svelte'
+  import { soloGame, toastRef } from '$lib/stores/gameState.svelte'
+  import Toast from '$lib/components/Toast.svelte'
   let { children } = $props()
 </script>
 
@@ -21,6 +22,7 @@
 {/if}
 <main class="mx-auto max-w-3/4">
   {@render children()}
+  <Toast bind:this={$toastRef} />
 </main>
 <footer class="footer footer-center text-base-content p-4">
   <p class="text-md inline">

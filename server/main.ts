@@ -15,6 +15,15 @@ type Leadeboard = {
   time: number;
 }[];
 
+type ErrorObject = {
+  message: string;
+  name: string;
+};
+
+const createError = (name: string, message: string): ErrorObject => {
+  return { name, message };
+};
+
 interface GameInfo {
   code: string;
   num: number;
@@ -26,7 +35,7 @@ interface GameInfo {
 
 interface ServerToClientEvents {
   start: (pages: PageInfo[]) => void;
-  update_game: (gameInfo: GameInfo) => void;
+  update_game: (gameInfo: GameInfo | null) => void;
   finisher: (username: string) => void;
   end_game: () => void;
 }
@@ -37,14 +46,14 @@ interface ClientToServerEvents {
   new_game: (
     username: string,
     num_players: number,
-    ackCallback: (gameInfo: GameInfo | Error) => void,
+    ackCallback: (response: [ErrorObject | null, GameInfo | null]) => void,
   ) => void;
   kick_player: (user: UserInfo) => void;
   restart: () => void;
   join_game: (
     username: string,
     code: string,
-    ackCallback: (gameState: GameInfo | Error) => void,
+    ackCallback: (response: [ErrorObject | null, GameInfo | null]) => void,
   ) => void;
   finish: (time: number) => void;
 }
@@ -74,6 +83,12 @@ cache.hooks.addHandler(KeyvHooks.POST_SET, ({ key, value }) => {
   io.to(key).emit("update_game", json_val);
 });
 
+cache.hooks.addHandler(KeyvHooks.POST_DELETE, ({ key }) => {
+  const trim_len = "keyv:".length;
+  key = key.slice(trim_len);
+  io.to(key).emit("update_game", null);
+});
+
 console.log("RUNNING THE SERVER");
 
 io.of("/").adapter.on("delete-room", async (room) => {
@@ -95,6 +110,7 @@ io.on(
 
     socket.onAny((eventName, ...args) => {
       console.log("Event triggered: ", eventName);
+      // TODO: Do better logging
     });
 
     socket.on("new_game", async (username, num_players, ackCallback) => {
@@ -117,13 +133,24 @@ io.on(
       socket.data.code = newGame.code;
       await cache.set(newGame.code, newGame);
       socket.join(newGame.code);
-      ackCallback(newGame);
+      ackCallback([null, newGame]);
     });
 
     socket.on("end_game", async () => {
       const code = socket.data.code;
       await cache.delete(code);
+      socket.data.code = null;
+
+      const member_sockets = await io.in(code).fetchSockets();
+      member_sockets.forEach((socket) => {
+        socket.data.code = null;
+      });
+
       socket.to(code).emit("end_game");
+
+      member_sockets.forEach((socket) => {
+        socket.leave(code);
+      });
     });
 
     socket.on("kick_player", async (user) => {
@@ -139,7 +166,10 @@ io.on(
 
     socket.on("join_game", async (username, code, ackCallback) => {
       if (!cache.has(code)) {
-        ackCallback(new Error("Error: Incorrect code"));
+        ackCallback([
+          createError("JoinGameError", "No game found with the given code"),
+          null,
+        ]);
         return;
       }
       socket.data.username = username;
@@ -147,7 +177,7 @@ io.on(
 
       let gameInfo = await cache.get<GameInfo>(code);
       if (gameInfo && gameInfo?.players.length >= gameInfo?.num) {
-        ackCallback(new Error("Error: Game is full"));
+        ackCallback([createError("JoinGameError", "Game is full"), null]);
         return;
       }
 
@@ -157,9 +187,12 @@ io.on(
       socket.join(code);
 
       if (gameInfo) {
-        ackCallback(gameInfo);
+        ackCallback([null, gameInfo]);
       } else {
-        ackCallback(new Error("Couldn't find the game"));
+        ackCallback([
+          createError("JoinGameError", "No game found with the given code"),
+          null,
+        ]);
       }
     });
 
