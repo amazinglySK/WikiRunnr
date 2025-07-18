@@ -146,7 +146,7 @@ io.on(
         socket.data.code = null;
       });
 
-      socket.to(code).emit("end_game");
+      io.to(code).emit("end_game");
 
       member_sockets.forEach((socket) => {
         socket.leave(code);
@@ -232,6 +232,9 @@ io.on(
       };
       gameInfo?.lb.push(lb_entry);
       await cache.set(code, gameInfo);
+      io.in(code)
+        .fetchSockets()
+        .then((obj) => console.log(obj.length));
       socket.to(code).emit("finisher", socket.data.username);
     });
 

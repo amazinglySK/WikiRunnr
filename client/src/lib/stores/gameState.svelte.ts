@@ -35,3 +35,9 @@ export const inGame = derived([gameInfo, username], ([$g, $u]) => {
 })
 export const gameCode = derived(gameInfo, ($g) => $g?.code)
 export const toastRef = writable<Toast>()
+
+export const resetDefaultState = () => {
+  isLeader.set(false)
+  soloGame.set(true)
+  gameInfo.set(null)
+}

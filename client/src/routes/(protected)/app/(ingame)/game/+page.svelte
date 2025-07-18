@@ -2,7 +2,14 @@
   import { onDestroy, onMount } from 'svelte'
   import { socket } from '$lib/stores/socket.svelte'
   import Clock from '$lib/components/Clock.svelte'
-  import { target, start, inGame, toastRef } from '$lib/stores/gameState.svelte'
+  import {
+    target,
+    start,
+    inGame,
+    toastRef,
+    isLeader,
+    resetDefaultState,
+  } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { goto } from '$app/navigation'
   import Leaderboard from '$lib/components/Leaderboard.svelte'
@@ -24,10 +31,6 @@
       }
     })
 
-    $socket?.on('finisher', (username: string) => {
-      $toastRef?.addToast(`${username} finished the game`, 'success')
-    })
-
     $socket?.on('start', async (_) => {
       await startGame()
     })
@@ -35,7 +38,7 @@
     await startGame()
   })
 
-  const startGame = async (start_id?: number, end_id?: number) => {
+  const startGame = async () => {
     started = true
     clockRef?.reset()
     clockRef?.start()
@@ -48,12 +51,8 @@
 
   const endGame = () => {
     $socket?.emit('end_game')
+    resetDefaultState()
     goto('/app/')
-  }
-
-  const finishGame = () => {
-    const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
-    if (doc) doc.location.href = `/wiki/${$target.enc_title}`
   }
 
   const handleFrameLoad = async () => {
@@ -104,11 +103,21 @@
   </iframe>
 </div>
 
+{#if $isLeader && started}
+  <button class="btn btn-soft btn-primary" onclick={restart}>
+    <span class="material-symbols-outlined"> shuffle </span>
+    Generate new seed</button
+  >
+{/if}
+
 <GameEndModal bind:this={gameEndModal} {restart} time={final_time} />
 
 <DevTools
   modalTrigger={gameEndModal?.show}
-  finishGameTrigger={finishGame}
+  finishGameTrigger={() => {
+    const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
+    if (doc) doc.location.href = `/wiki/${$target.enc_title}`
+  }}
   toastTrigger={() => {
     $toastRef?.addToast('This is a test', 'success')
   }}

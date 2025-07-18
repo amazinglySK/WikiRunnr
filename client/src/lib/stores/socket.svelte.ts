@@ -1,5 +1,12 @@
 import { get, writable } from 'svelte/store'
-import { gameInfo, isLeader, soloGame, start, target } from './gameState.svelte'
+import {
+  gameInfo,
+  resetDefaultState,
+  soloGame,
+  start,
+  target,
+  toastRef,
+} from './gameState.svelte'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import type { PageContent } from '$lib/fetchPage'
@@ -11,13 +18,6 @@ export const socket = writable<Socket | null>(null)
 export function initSocket(): void {
   if (PUBLIC_MODE !== 'MULTI') {
     return
-  }
-
-  if (get(socket)?.connected) {
-    console.log('Already connected')
-    return
-  } else {
-    console.log('Creating a new socket')
   }
 
   const URL = 'http://localhost:3000'
@@ -57,10 +57,11 @@ export function initSocket(): void {
     }
   })
 
+  newSocket.on('finisher', (username: string) => {
+    get(toastRef)?.addToast(`${username} finished the game`, 'success')
+  })
   newSocket.on('end_game', () => {
-    gameInfo.set(null)
-    isLeader.set(false)
-    soloGame.set(true)
+    resetDefaultState()
     goto('/app/')
   })
 

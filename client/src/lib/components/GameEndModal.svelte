@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { start, target } from '$lib/stores/gameState.svelte'
-  import { fade } from 'svelte/transition'
+  import {
+    start,
+    target,
+    soloGame,
+    toastRef,
+  } from '$lib/stores/gameState.svelte'
+
   let modal_dial: HTMLDialogElement
   let close_btn: HTMLButtonElement
-
-  let showToast = $state(false)
 
   export const show = () => {
     modal_dial?.showModal()
@@ -19,15 +22,12 @@
 
   const copy = async () => {
     try {
-      const url = new URL('/app', window.location.origin)
+      const url = new URL('/app/game/solo', window.location.origin)
       url.searchParams.set('start', $start.id.toString())
       url.searchParams.set('end', $target.id.toString())
       await navigator.clipboard.writeText(url.toString())
-
-      showToast = true
-      setTimeout(() => {
-        showToast = false
-      }, 5000)
+      close_btn?.click()
+      $toastRef?.addToast('Copied to clipboard')
     } catch (e) {
       console.error(e)
     }
@@ -35,21 +35,16 @@
 </script>
 
 <dialog id="game_over_modal" class="modal" bind:this={modal_dial}>
-  {#if showToast}
-    <div transition:fade={{ duration: 300 }} class="toast toast-top toast-end">
-      <div class="alert alert-success">
-        <span>Copied to clipboard!</span>
-      </div>
-    </div>
-  {/if}
   <div class="modal-box">
     <div class="mx-auto max-w-2/3 text-center">
       <h3 class="text-2xl font-bold">SUCCESS!</h3>
       <p class="py-4">Time taken: {time}</p>
-      <button class="btn btn-primary" onclick={play_again}>
-        <span class="material-symbols-outlined"> replay </span>
-        Play again</button
-      >
+      {#if $soloGame}
+        <button class="btn btn-primary" onclick={play_again}>
+          <span class="material-symbols-outlined"> replay </span>
+          Play again</button
+        >
+      {/if}
       <button class="btn btn-soft btn-accent" onclick={copy}
         ><span class="material-symbols-outlined"> share </span>Share</button
       >

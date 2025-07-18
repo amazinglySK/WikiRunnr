@@ -5,7 +5,6 @@
   import { target, start, toastRef } from '$lib/stores/gameState.svelte'
   import GameEndModal from '$lib/components/GameEndModal.svelte'
   import { page } from '$app/state'
-  import Toast from '$lib/components/Toast.svelte'
   import DevTools from '$lib/components/DevTools.svelte'
   import GameBar from '$lib/components/GameBar.svelte'
 
@@ -17,7 +16,6 @@
   let iframeRef: HTMLIFrameElement | undefined = $state<HTMLIFrameElement>()
 
   onMount(async () => {
-    console.log('Mounting')
     const params = page.url.searchParams
     let start_id = parseInt(params.get('start') ?? '')
     let end_id = parseInt(params.get('end') ?? '')
@@ -25,7 +23,6 @@
     if (start_id && end_id) {
       await startGame(start_id, end_id)
     } else {
-      console.log('Hitting this')
       await startGame()
     }
   })
@@ -42,11 +39,6 @@
     await startSoloGame()
     started = true
     clockRef?.start()
-  }
-
-  const finishGame = () => {
-    const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
-    if (doc) doc.location.href = `/wiki/${$target.enc_title}`
   }
 
   const handleFrameLoad = async () => {
@@ -95,7 +87,10 @@
 
 <DevTools
   modalTrigger={gameEndModal?.show}
-  finishGameTrigger={finishGame}
+  finishGameTrigger={() => {
+    const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
+    if (doc) doc.location.href = `/wiki/${$target.enc_title}`
+  }}
   toastTrigger={() => {
     $toastRef?.addToast('This is a test', 'success')
   }}
