@@ -15,7 +15,7 @@ export const fetchWiki = async (link: string) => {
     params: {
       action: 'parse',
       page: search_term,
-      prop: 'displaytitle|text',
+      prop: 'displaytitle|text|sections',
       format: 'json',
       origin: '*',
     },
