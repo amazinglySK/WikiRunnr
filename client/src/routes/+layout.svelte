@@ -1,8 +1,24 @@
 <script lang="ts">
   import '../app.css'
-  import { socket } from '$lib/stores/socket.svelte'
-  import { soloGame, toastRef } from '$lib/stores/gameState.svelte'
+  import { initSocket, socket } from '$lib/stores/socket.svelte'
+  import { toastRef } from '$lib/stores/gameState.svelte'
   import Toast from '$lib/components/Toast.svelte'
+  import { onDestroy, onMount } from 'svelte'
+
+  onMount(() => {
+    if (!$socket) {
+      console.log('Running the socket initialization')
+      initSocket()
+    }
+
+    return () => {
+      if ($socket) {
+        $socket.close()
+        console.log('Socket closed')
+      }
+    }
+  })
+
   let { children } = $props()
 </script>
 
@@ -16,8 +32,8 @@
 <h1 class="pt-3 text-center text-4xl font-bold">WikiRunnr</h1>
 {#if import.meta.env.DEV}
   <p class="text-center">(Debug Mode)</p>
-  {#if !$soloGame}
-    <p class="text-center">Socket ID: {$socket?.id}</p>
+  {#if $socket != null}
+    <p class="text-center">Socket ID: {$socket.id}</p>
   {/if}
 {/if}
 <main class="mx-auto max-w-3/4">

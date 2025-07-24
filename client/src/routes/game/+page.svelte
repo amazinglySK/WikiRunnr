@@ -27,7 +27,7 @@
   onMount(async () => {
     unsubscribe = inGame.subscribe((v: boolean) => {
       if (!v) {
-        goto('/app/')
+        goto('/')
       }
     })
 
@@ -52,7 +52,7 @@
   const endGame = () => {
     $socket?.emit('end_game')
     resetDefaultState()
-    goto('/app/')
+    goto('/')
   }
 
   const handleFrameLoad = async () => {

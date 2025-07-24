@@ -22,7 +22,7 @@
 
   const copy = async () => {
     try {
-      const url = new URL('/app/game/solo', window.location.origin)
+      const url = new URL('/game/solo', window.location.origin)
       url.searchParams.set('start', $start.id.toString())
       url.searchParams.set('end', $target.id.toString())
       await navigator.clipboard.writeText(url.toString())

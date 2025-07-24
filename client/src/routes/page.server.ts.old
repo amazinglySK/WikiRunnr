@@ -1,0 +1,43 @@
+// import type { Actions } from './$types'
+// import { ACCESS_CODE } from '$env/static/private'
+// import { redirect } from '@sveltejs/kit'
+// import { hash } from 'bcrypt'
+//
+// export const actions = {
+//   default: async ({ cookies, request }) => {
+//     const data = await request.formData()
+//     const access_code = data.get('access_code')
+//     if (import.meta.env.DEV || access_code === ACCESS_CODE) {
+//       cookies.set('access', 'true', { path: '/', sameSite: 'strict' })
+//       const session_token = await hash(ACCESS_CODE, 10)
+//       cookies.set('session_token', session_token, {
+//         path: '/',
+//         sameSite: 'strict',
+//       })
+//       redirect(303, '/app')
+//     }
+//   },
+// } satisfies Actions
+//
+//
+//
+// THE HTML
+//
+// <main class="flex items-center">
+//   <form method="POST" class="mx-auto mt-4 flex max-w-max flex-col gap-2">
+//     <fieldset
+//       class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4"
+//     >
+//       <legend class="fieldset-legend">Enter access code</legend>
+//       <input
+//         name="access_code"
+//         type="text"
+//         class="input input-lg"
+//         placeholder="Type here"
+//       />
+//       <p class="label">*Required</p>
+//     </fieldset>
+//     <button class="btn btn-soft btn-accent">Get access</button>
+//   </form>
+//   >
+// </main>

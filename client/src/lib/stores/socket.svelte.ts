@@ -5,6 +5,7 @@ import {
   soloGame,
   start,
   target,
+  isLeader,
   toastRef,
 } from './gameState.svelte'
 import { io } from 'socket.io-client'
@@ -33,6 +34,7 @@ export function initSocket(): void {
 
   newSocket.on('connect', () => {
     console.log('Connected to the server')
+    socket.set(newSocket)
   })
 
   newSocket.on('disconnect', () => {
@@ -40,6 +42,8 @@ export function initSocket(): void {
       console.log('Temporary reconnection: trying to reconnect')
     } else {
       console.log('Disconnected from the server')
+      socket.set(null)
+      resetDefaultState()
     }
   })
 
@@ -51,19 +55,31 @@ export function initSocket(): void {
     start.set(pages[0])
     target.set(pages[1])
     if (get(soloGame)) {
-      goto('/app/game/solo')
+      goto('/game/solo')
     } else {
-      goto('/app/game/')
+      goto('/game/')
     }
   })
 
   newSocket.on('finisher', (username: string) => {
     get(toastRef)?.addToast(`${username} finished the game`, 'success')
   })
-  newSocket.on('end_game', () => {
-    resetDefaultState()
-    goto('/app/')
+
+  newSocket.on('player_leave', (username: string) => {
+    get(toastRef)?.addToast(`${username} left the room`, 'error')
   })
 
-  socket.set(newSocket)
+  newSocket.on('player_join', (username: string) => {
+    get(toastRef)?.addToast(`${username} joined the game`, 'success')
+  })
+
+  newSocket.on('new_leader', () => {
+    get(toastRef)?.addToast(`You are the new leader`, 'success')
+    isLeader.set(true)
+  })
+
+  newSocket.on('end_game', () => {
+    resetDefaultState()
+    goto('/')
+  })
 }

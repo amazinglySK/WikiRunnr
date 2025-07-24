@@ -33,7 +33,6 @@
 <div class="toast toast-end">
   {#each toasts as toast (toast.id)}
     <div
-      in:fade={{ duration: 300 }}
       out:fade={{ duration: 300 }}
       class="alert alert-{toast.type} alert-soft"
     >

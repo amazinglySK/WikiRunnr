@@ -13,7 +13,7 @@
   import { goto } from '$app/navigation'
 
   const onStart = () => {
-    if (!$gameInfo?.code) {
+    if (!$gameCode) {
       alert('Something went wrong')
     }
     $socket?.emit('start')
@@ -21,7 +21,7 @@
 
   const copy_code = async () => {
     try {
-      await navigator.clipboard.writeText($gameCode)
+      await navigator.clipboard.writeText($gameCode ?? '')
       $toastRef?.addToast('Copied to clipboard', 'success')
     } catch (e) {
       console.error(e)
@@ -37,7 +37,7 @@
   onMount(() => {
     unsubscribe = inGame.subscribe((v: boolean) => {
       if (!v) {
-        goto('/app/')
+        goto('/')
       }
     })
   })

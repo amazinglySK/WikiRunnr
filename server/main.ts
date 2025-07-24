@@ -38,6 +38,9 @@ interface ServerToClientEvents {
   update_game: (gameInfo: GameInfo | null) => void;
   finisher: (username: string) => void;
   end_game: () => void;
+  player_leave: (username: string) => void;
+  player_join: (username: string) => void;
+  new_leader: () => void;
 }
 
 interface ClientToServerEvents {
@@ -188,6 +191,7 @@ io.on(
 
       if (gameInfo) {
         ackCallback([null, gameInfo]);
+        socket.to(code).emit("player_join", socket.data.username);
       } else {
         ackCallback([
           createError("JoinGameError", "No game found with the given code"),
@@ -249,6 +253,15 @@ io.on(
 
       if (lb_index !== -1) gameInfo?.lb.splice(lb_index, 1);
       if (player_index !== -1) gameInfo?.players.splice(player_index, 1);
+
+      io.to(code).emit("player_leave", socket.data.username);
+
+      // The leader left the game
+      if (gameInfo && gameInfo.leader_id == socket.id) {
+        // Choose the new leader
+        gameInfo.leader_id = gameInfo?.players.at(0)?.id ?? "";
+        io.to(gameInfo.leader_id).emit("new_leader");
+      }
 
       await cache.set(code, gameInfo);
 
