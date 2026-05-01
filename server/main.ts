@@ -41,6 +41,7 @@ interface ServerToClientEvents {
   player_leave: (username: string) => void;
   player_join: (username: string) => void;
   new_leader: () => void;
+  you_were_kicked: () => void;
 }
 
 interface ClientToServerEvents {
@@ -163,12 +164,21 @@ io.on(
         game?.players.findIndex((val) => val.username === user.username) ?? -1;
       if (idx != -1) {
         game?.players.splice(idx, 1);
+        const member_sockets = await io.in(code).fetchSockets();
+        const kicked_socket = member_sockets.find(
+          (s) => s.data.username === user.username,
+        );
+        if (kicked_socket) {
+          kicked_socket.emit("you_were_kicked");
+          kicked_socket.leave(code);
+          kicked_socket.data.code = null;
+        }
       }
       await cache.set(code, game);
     });
 
     socket.on("join_game", async (username, code, ackCallback) => {
-      if (!cache.has(code)) {
+      if (!(await cache.has(code))) {
         ackCallback([
           createError("JoinGameError", "No game found with the given code"),
           null,

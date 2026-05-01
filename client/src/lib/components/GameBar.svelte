@@ -26,5 +26,6 @@
       ></span
     >
   </div>
+
   <Clock bind:this={clockRef}></Clock>
 </div>

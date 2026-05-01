@@ -9,6 +9,7 @@
   import GameBar from '$lib/components/GameBar.svelte'
 
   let started = $state(false)
+  let loading = $state(false)
   let currentLocation = $state('')
   let final_time = $state('')
   let gameEndModal: GameEndModal | undefined = $state<GameEndModal>()
@@ -28,7 +29,12 @@
   })
 
   const startGame = async (start_id?: number, end_id?: number) => {
-    await startSoloGame(start_id, end_id)
+    loading = true
+    try {
+      await startSoloGame(start_id, end_id)
+    } finally {
+      loading = false
+    }
     started = true
     clockRef?.reset()
     clockRef?.start()
@@ -36,7 +42,12 @@
 
   const restart = async () => {
     clockRef?.reset()
-    await startSoloGame()
+    loading = true
+    try {
+      await startSoloGame()
+    } finally {
+      loading = false
+    }
     started = true
     clockRef?.start()
   }
@@ -45,7 +56,16 @@
     try {
       const doc =
         iframeRef?.contentWindow?.document || iframeRef?.contentDocument
-      currentLocation = doc?.location.pathname ?? ''
+      const path = doc?.location.pathname ?? ''
+
+      // Layer 2: snap back if the player escaped the proxy
+      if (started && path && !path.startsWith('/wiki/')) {
+        if (iframeRef) iframeRef.src = currentLocation || `/wiki/${$start?.enc_title}`
+        $toastRef?.addToast('Stay on Wikipedia!', 'error')
+        return
+      }
+
+      currentLocation = path
       const decoded_url = decodeURIComponent(doc?.location.href ?? '')
         .split('/')
         .at(-1)
@@ -64,7 +84,13 @@
 
 <GameBar {started} {startGame} bind:clockRef />
 
-<div class="mockup-browser border-base-300 border">
+{#if loading}
+  <div class="flex h-64 w-full items-center justify-center">
+    <span class="loading loading-spinner loading-lg"></span>
+  </div>
+{/if}
+
+<div class="mockup-browser border-base-300 border {loading && 'hidden'}">
   <div class="mockup-browser-toolbar">
     <div class="input">
       {currentLocation}
@@ -72,9 +98,7 @@
   </div>
   <iframe
     onload={handleFrameLoad}
-    src={started && $start.enc_title
-      ? `/wiki/${$start.enc_title}`
-      : '/wiki/Wikipedia'}
+    src={started && $start.enc_title ? `/wiki/${$start.enc_title}` : '/wiki/Wikipedia'}
     bind:this={iframeRef}
     title="game window"
     class="h-screen w-full bg-white"
@@ -85,16 +109,18 @@
 
 <GameEndModal bind:this={gameEndModal} {restart} time={final_time} />
 
-<DevTools
-  modalTrigger={gameEndModal?.show}
-  finishGameTrigger={() => {
-    const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
-    if (doc) doc.location.href = `/wiki/${$target.enc_title}`
-  }}
-  toastTrigger={() => {
-    $toastRef?.addToast('This is a test', 'success')
-  }}
-  leaderboardTrigger={() => {
-    started = false
-  }}
-/>
+{#if import.meta.env.DEV}
+  <DevTools
+    modalTrigger={gameEndModal?.show}
+    finishGameTrigger={() => {
+      const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
+      if (doc) doc.location.href = `/wiki/${$target.enc_title}`
+    }}
+    toastTrigger={() => {
+      $toastRef?.addToast('This is a test', 'success')
+    }}
+    leaderboardTrigger={() => {
+      started = false
+    }}
+  />
+{/if}

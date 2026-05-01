@@ -51,12 +51,29 @@ function buildTOCHTML(sections: WikiSection[]): string {
   </div>`
 }
 
+function sanitizeLinks(html: string): string {
+  return (
+    html
+      // Rewrite absolute en.wikipedia.org links to the same-origin proxy
+      .replace(
+        /href="(?:https?:)?\/\/en\.wikipedia\.org\/wiki\/([^"]*?)"/gi,
+        'href="/wiki/$1"',
+      )
+      // Kill all remaining protocol-relative or absolute external links
+      .replace(/href="(?:https?:)?\/\/[^"]*"/gi, 'href="#" data-blocked')
+      // Kill /w/ MediaWiki paths (edit, history, special pages, etc.)
+      .replace(/href="\/w\/[^"]*"/gi, 'href="#" data-blocked')
+      // Kill any remaining absolute https?:// links
+      .replace(/href="https?:\/\/[^"]*"/gi, 'href="#" data-blocked')
+  )
+}
+
 export const GET: RequestHandler = async ({ params }) => {
   const { slug } = params
 
   try {
     const page: WikiPage = await fetchWiki(slug)
-    const pageContent = page.text['*']
+    const pageContent = sanitizeLinks(page.text['*'])
     const tocHTML = buildTOCHTML(page.sections)
 
     const head = `

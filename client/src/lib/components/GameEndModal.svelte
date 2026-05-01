@@ -15,19 +15,21 @@
 
   let { restart, time } = $props()
 
+  const shareUrl = $derived(
+    typeof window !== 'undefined' && $start?.id && $target?.id
+      ? `${window.location.origin}/game/solo?start=${$start.id}&end=${$target.id}`
+      : '',
+  )
+
   const play_again = () => {
     restart()
     close_btn?.click()
   }
 
-  const copy = async () => {
+  const copyShareUrl = async () => {
     try {
-      const url = new URL('/game/solo', window.location.origin)
-      url.searchParams.set('start', $start.id.toString())
-      url.searchParams.set('end', $target.id.toString())
-      await navigator.clipboard.writeText(url.toString())
-      close_btn?.click()
-      $toastRef?.addToast('Copied to clipboard')
+      await navigator.clipboard.writeText(shareUrl)
+      $toastRef?.addToast('Challenge link copied!')
     } catch (e) {
       console.error(e)
     }
@@ -36,18 +38,41 @@
 
 <dialog id="game_over_modal" class="modal" bind:this={modal_dial}>
   <div class="modal-box">
-    <div class="mx-auto max-w-2/3 text-center">
+    <div class="mx-auto text-center">
       <h3 class="text-2xl font-bold">SUCCESS!</h3>
-      <p class="py-4">Time taken: {time}</p>
-      {#if $soloGame}
-        <button class="btn btn-primary" onclick={play_again}>
-          <span class="material-symbols-outlined"> replay </span>
-          Play again</button
-        >
+      <div class="mt-3 flex justify-center gap-2 text-lg opacity-70">
+        <span class="material-symbols-outlined text-base">timer</span>
+        <span>{time}</span>
+      </div>
+
+      <div class="mt-5 flex justify-center gap-2">
+        {#if $soloGame}
+          <button class="btn btn-primary" onclick={play_again}>
+            <span class="material-symbols-outlined">replay</span>
+            Play again
+          </button>
+        {/if}
+      </div>
+
+      {#if $soloGame && shareUrl}
+        <div class="mt-4">
+          <p class="mb-1 text-xs opacity-60">Challenge a friend</p>
+          <div class="join w-full">
+            <input
+              class="input join-item input-sm w-full font-mono text-xs"
+              value={shareUrl}
+              readonly
+            />
+            <button
+              class="btn btn-sm join-item btn-accent"
+              onclick={copyShareUrl}
+              title="Copy link"
+            >
+              <span class="material-symbols-outlined text-base">content_copy</span>
+            </button>
+          </div>
+        </div>
       {/if}
-      <button class="btn btn-soft btn-accent" onclick={copy}
-        ><span class="material-symbols-outlined"> share </span>Share</button
-      >
     </div>
   </div>
   <form method="dialog" class="modal-backdrop">

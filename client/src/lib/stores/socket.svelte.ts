@@ -78,6 +78,12 @@ export function initSocket(): void {
     isLeader.set(true)
   })
 
+  newSocket.on('you_were_kicked', () => {
+    get(toastRef)?.addToast('You were removed from the game', 'error')
+    resetDefaultState()
+    goto('/')
+  })
+
   newSocket.on('end_game', () => {
     resetDefaultState()
     goto('/')

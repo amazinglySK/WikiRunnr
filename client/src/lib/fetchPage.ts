@@ -9,9 +9,15 @@ export type PageContent = {
 
 const MEDIAWIKI: string = 'https://en.wikipedia.org/w/api.php'
 
+const wikiClient = axios.create({
+  headers: {
+    'User-Agent': 'WikiRunnr/1.0 (Wikipedia speedrunning game; https://github.com/amazinglySK/WikiRunnr)',
+  },
+})
+
 export const fetchWiki = async (link: string) => {
   const search_term = decodeURIComponent(link)
-  const page_result = await axios.get(MEDIAWIKI, {
+  const page_result = await wikiClient.get(MEDIAWIKI, {
     params: {
       action: 'parse',
       page: search_term,
@@ -25,7 +31,7 @@ export const fetchWiki = async (link: string) => {
 
 export const getRandomArticleTitles = async (n: number) => {
   try {
-    const response = await axios.get(MEDIAWIKI, {
+    const response = await wikiClient.get(MEDIAWIKI, {
       params: {
         action: 'query',
         list: 'random',
@@ -49,7 +55,7 @@ export const getRandomArticleTitles = async (n: number) => {
 
 export const getTitleFromId = async (...id: number[]) => {
   try {
-    const response = await axios.get(MEDIAWIKI, {
+    const response = await wikiClient.get(MEDIAWIKI, {
       params: {
         action: 'query',
         prop: 'info',

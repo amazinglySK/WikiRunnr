@@ -59,7 +59,16 @@
     try {
       const doc =
         iframeRef?.contentWindow?.document || iframeRef?.contentDocument
-      currentLocation = doc?.location.pathname ?? ''
+      const path = doc?.location.pathname ?? ''
+
+      // Layer 2: snap back if the player escaped the proxy
+      if (started && path && !path.startsWith('/wiki/')) {
+        if (iframeRef) iframeRef.src = currentLocation || `/wiki/${$start?.enc_title}`
+        $toastRef?.addToast('Stay on Wikipedia!', 'error')
+        return
+      }
+
+      currentLocation = path
       const decoded_url = decodeURIComponent(doc?.location.href ?? '')
         .split('/')
         .at(-1)
@@ -112,16 +121,18 @@
 
 <GameEndModal bind:this={gameEndModal} {restart} time={final_time} />
 
-<DevTools
-  modalTrigger={gameEndModal?.show}
-  finishGameTrigger={() => {
-    const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
-    if (doc) doc.location.href = `/wiki/${$target.enc_title}`
-  }}
-  toastTrigger={() => {
-    $toastRef?.addToast('This is a test', 'success')
-  }}
-  leaderboardTrigger={() => {
-    started = false
-  }}
-/>
+{#if import.meta.env.DEV}
+  <DevTools
+    modalTrigger={gameEndModal?.show}
+    finishGameTrigger={() => {
+      const doc = iframeRef?.contentWindow?.document || iframeRef?.contentDocument
+      if (doc) doc.location.href = `/wiki/${$target.enc_title}`
+    }}
+    toastTrigger={() => {
+      $toastRef?.addToast('This is a test', 'success')
+    }}
+    leaderboardTrigger={() => {
+      started = false
+    }}
+  />
+{/if}
